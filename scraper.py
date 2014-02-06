@@ -1,16 +1,23 @@
 import re
 import random
-from lxml.html import parse
-
+from lxml.html import parse, tostring
+from functools import partial
 
 PROPER_NAME_RE = re.compile(r'[A-Z][a-z]+(?: [A-Z][a-z]+)+')
 
+def get_doc():
+    return parse('http://www.dailymail.co.uk/home/latest/index.html')
 
-def get_headlines():
-    doc = parse('http://www.dailymail.co.uk/home/latest/index.html')
+def get_headline_elements(doc):
     SEL = '.link-bogr2 strong'
-    return [el.text.strip() for el in doc.getroot().cssselect(SEL)]
+    return doc.getroot().cssselect(SEL)
 
+def get_headlines(doc):
+    return [el.text.strip() for el in get_headline_elements(doc)]
+
+def modify_doc(doc, headline_gen):
+    for el in get_headline_elements(doc):
+        el.text = headline_gen()
 
 def get_people(headlines):
     seen = set()
@@ -34,7 +41,16 @@ def build_headlines(headlines, topics):
 
 
 if __name__ == '__main__':
-    headlines = list(get_headlines())
+
+    doc = get_doc()
+    headlines = list(get_headlines(doc))
     topics = list(get_people(headlines))
 
     print build_headlines(headlines, topics)
+    headline_gen = partial(build_headlines, headlines, topics)
+    modify_doc(doc, headline_gen)
+
+    s = tostring(doc)
+    with open('./mail.html', 'w') as f:
+	f.write(s)
+
