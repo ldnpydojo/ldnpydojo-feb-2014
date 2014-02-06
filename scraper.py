@@ -6,21 +6,26 @@ from functools import partial
 PROPER_NAME_RE = re.compile(r'[A-Z][a-z]+(?: [A-Z][a-z]+)+')
 DAILY_MAIL_FRONTPAGE = 'http://www.dailymail.co.uk/home/latest/index.html'
 
+
 def get_doc():
-    doc = parse(DAILY_MAIL_FRONTPAGE)
-    doc.getroot().make_links_absolute(DAILY_MAIL_FRONTPAGE)
+    doc = parse('mail-full.html')
+    #doc.getroot().make_links_absolute(DAILY_MAIL_FRONTPAGE)
     return doc
+
 
 def get_headline_elements(doc):
     SEL = '.link-bogr2 strong'
     return doc.getroot().cssselect(SEL)
 
+
 def get_headlines(doc):
     return [el.text.strip() for el in get_headline_elements(doc)]
+
 
 def modify_doc(doc, headline_gen):
     for el in get_headline_elements(doc):
         el.text = headline_gen()
+
 
 def get_people(headlines):
     seen = set()
@@ -49,7 +54,6 @@ if __name__ == '__main__':
     headlines = list(get_headlines(doc))
     topics = list(get_people(headlines))
 
-    print build_headlines(headlines, topics)
     headline_gen = partial(build_headlines, headlines, topics)
     modify_doc(doc, headline_gen)
 
