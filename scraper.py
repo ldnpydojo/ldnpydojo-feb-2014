@@ -4,9 +4,12 @@ from lxml.html import parse, tostring
 from functools import partial
 
 PROPER_NAME_RE = re.compile(r'[A-Z][a-z]+(?: [A-Z][a-z]+)+')
+DAILY_MAIL_FRONTPAGE = 'http://www.dailymail.co.uk/home/latest/index.html'
 
 def get_doc():
-    return parse('http://www.dailymail.co.uk/home/latest/index.html')
+    doc = parse(DAILY_MAIL_FRONTPAGE)
+    doc.getroot().make_links_absolute(DAILY_MAIL_FRONTPAGE)
+    return doc
 
 def get_headline_elements(doc):
     SEL = '.link-bogr2 strong'
